@@ -1,0 +1,85 @@
+{
+  "host": "localhost",
+  "port": 3030,
+  "public": "../public/",
+  "uploads": "../uploads/",
+  "paginate": {
+    "default": 10,
+    "max": 50
+  },
+  "authentication": {
+    "secret": "1b3c2d9a43970ec62e98499aaa83ce94d353b9f4c725f91f7d2d6f86d0ba4556a9852dd0ba7ce5e4b0e35f4d8bf68fa0d9f989afb418a9111f3451ee0bee57676664953c361bc09d0b659f07b30ab0983dfec8a2a2ed31267fe8817732754ceef66cee458dc498090a6421f98845fd2e9c369806497c47656c1dbf42eab9630d771332fa184e0105c6b3860cbdac1e1e7353a6331c01eef2c5e7d2f752eee72c90082e900106bda2136dd4e1a6d0b4e52fad3ce5319a357b7d7e98f7103e7d35b316a566594ad5648bbfc6607ebff8c2f8aa74b868961dead5c408c1a2a0139eab5cf51ec5469d2edf4a2bb03fd7fec365ce065bca838e2654777ecd53390343",
+    "strategies": [
+      "jwt",
+      "local",
+      "anonymous"
+    ],
+    "path": "/authentication",
+    "service": "users",
+    "cookie": {
+      "domain": "localhost",
+      "enabled": true,
+      "name": "feathers-jwt",
+      "httpOnly": false,
+      "secure": false
+    },
+    "jwt": {
+      "header": {
+        "type": "access"
+      },
+      "audience": "localhost",
+      "subject": "anonymous",
+      "issuer": "feathers",
+      "algorithm": "HS256",
+      "expiresIn": "1d"
+    },
+    "local": {
+      "entity": "user",
+      "service": "users",
+      "usernameField": "email",
+      "passwordField": "password",
+      "idField": "_id"
+    },
+    "anonymous": {
+      "service": "users",
+      "idField": "_id"
+    }
+  },
+  "nedb": "../data",
+  "file-system": {
+    "root": "../public",
+    "routes": [
+      {
+        "path": "/",
+        "requireAuth": false,
+        "excludes": [
+          "\\.html$"
+        ]
+      },
+      {
+        "path": "/uploads/:user/*child/titi",
+        "forbidden": true
+      },
+      {
+        "path": "/uploads/:user/*child",
+        "requireAuth": true,
+        "roles": [
+          "ALL"
+        ],
+        "param": "AUTH_USER"
+      },
+      {
+        "path": "/uploads/:user",
+        "requireAuth": true,
+        "roles": [
+          "ALL"
+        ],
+        "param": "AUTH_USER"
+      },
+      {
+        "path": "/uploads",
+        "requireAuth": false
+      }
+    ]
+  }
+}
