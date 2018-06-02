@@ -47,7 +47,7 @@ function handleRequestedPath() {
     if (checkAuthRequired(matchedRoute, context.params)) {
       matchedRoute.user = context.params['user'] ? context.params['user'] : { _id: '' };
       /**
-       * If required, check that the requested path "belong" to user (i.e The folder name is user ID)
+       * If path MUST belong to user by config, check that the requested path "belong" to user (i.e The folder name is user ID)
        */
       checkUserParam(matchedRoute);
 

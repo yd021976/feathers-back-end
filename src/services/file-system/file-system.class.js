@@ -35,9 +35,17 @@ class Service {
     const blobStorage = blobFs("./uploads");
     this.blobService = blobService({ Model: blobStorage });
   }
+  /**
+   * Define access permissions for casl/abilities library
+   */
+  capabilities() {
+    return {}
+  }
 
-
-  setup(app,path) {
+  /**
+   * 
+   */
+  setup(app, path) {
     this.app = app;
   }
   _readdir(path) {

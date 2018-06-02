@@ -1,9 +1,10 @@
 // Application hooks that run for every service
 const logger = require('./hooks/logger');
+const authorize = require('./hooks/abilities');
 
 module.exports = {
   before: {
-    all: [],
+    all: [authorize()],
     find: [],
     get: [],
     create: [],

@@ -51,7 +51,14 @@
     "routes": [
       {
         "path": "/",
-        "requireAuth": false,
+        "forbidden": false,
+        "requireAuth": true,
+        "param": "",
+        "permissions":{
+          "canRead" : ["all"],
+          "canWrite":["admins","users"],
+          "canDelete" : ["admins"]
+        },
         "excludes": [
           "\\.html$"
         ]
@@ -64,7 +71,7 @@
         "path": "/uploads/:user/*child",
         "requireAuth": true,
         "roles": [
-          "ALL"
+          "users"
         ],
         "param": "AUTH_USER"
       },
@@ -72,13 +79,16 @@
         "path": "/uploads/:user",
         "requireAuth": true,
         "roles": [
-          "ALL"
+          "users"
         ],
         "param": "AUTH_USER"
       },
       {
         "path": "/uploads",
-        "requireAuth": false
+        "requireAuth": true,
+        "roles": [
+          "users"
+        ]
       }
     ]
   }
