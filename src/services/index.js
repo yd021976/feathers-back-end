@@ -6,6 +6,10 @@ const fileUpload = require('./file-upload/file-upload.service.js');
 const fileSystem = require('./file-system/file-system.service.js');
 const authentication = require('./authentication/authentication.js');
 
+const roles = require('./roles/roles.service.js');
+
+const serviceModel = require('./service-model/service-model.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(authentication); // Always has to be the first service
@@ -15,4 +19,6 @@ module.exports = function () {
   app.configure(templateCategories);
   app.configure(fileUpload);
   app.configure(fileSystem);
+  app.configure(roles);
+  app.configure(serviceModel);
 };

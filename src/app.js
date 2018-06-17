@@ -67,6 +67,15 @@ app.configure(rest());
 //   express.static(app.get('uploads'))
 // );
 
+/**
+ * Setup services Mixins
+ */
+// app.mixins.push((service, path) => {
+//   service.getModel = function () {
+//     var model = app.service(path).serviceModel();
+//   }
+// });
+
 // Set up our services (see `services/index.js`)
 app.configure(services);
 // Configure middleware (see `middleware/index.js`) - always has to be last

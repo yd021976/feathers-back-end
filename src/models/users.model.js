@@ -9,7 +9,7 @@ module.exports = function (app) {
   });
 
   Model.ensureIndex({ fieldName: 'email', unique: true, sparse: true });
-  Model.ensureIndex({ fieldName: 'createDate', sparse: true, expireAfterSeconds: 60 });
+  Model.ensureIndex({ fieldName: 'createDate', sparse: true, expireAfterSeconds: 3600 });
 
   return Model;
 };
