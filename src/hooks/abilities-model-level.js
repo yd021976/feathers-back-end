@@ -68,15 +68,15 @@ function flattenJson(data, propertyKey = "", currentPath = "", separator = ".") 
     /**
      * 
      */
-    pathToData = currentPath ? String.concat(currentPath,separator, prop) : prop;
+    pathToData = currentPath ? currentPath.concat(separator, prop) : prop;
     
     /**
      * Ignore ARRAYs indexes for flat representation. The real path, including Array indexes could be found in the "path" property
      */
     if (!Array.isArray(data)) {
-      path = propertyKey ? path.concat(propertyKey, separator, prop) : prop;
-      flat = { flat: path, path: pathToData }
-      flattened.push(flat);
+      path = "";
+      path = propertyKey ? String.prototype.concat(propertyKey, separator, prop) : prop;
+      flattened[pathToData] = path;
     }
     /**
      * Recursive analysis only if "prop" of "data" is not a primitive data type
