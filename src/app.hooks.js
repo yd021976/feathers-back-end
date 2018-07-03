@@ -1,13 +1,18 @@
 // Application hooks that run for every service
 const logger = require('./hooks/logger');
-const authorize = require('./hooks/abilities');
+const authorize = require('./hooks/abilities-service-level');
 const { when } = require('feathers-hooks-common');
 const authenticate = require('./hooks/authenticate');
+const fieldPermission = require('./hooks/abilities-model-level');
 
 module.exports = {
   before: {
     all: [when(
-      hook => hook.params.provider && (`/${hook.path}` !== hook.app.get('authentication' || `/${hook.path}`!=='service-model')).path,
+      hook => hook.params.provider &&
+        `/${hook.path}` !== hook.app.get('authentication').path &&
+        `/${hook.path}` !== '/service-model' &&
+        `/${hook.path}` !== '/test'
+      ,
       authenticate,
       authorize()
     )
@@ -23,7 +28,9 @@ module.exports = {
   after: {
     all: [logger()],
     find: [],
-    get: [],
+    get: [
+      fieldPermission.authorize_read()
+    ],
     create: [],
     update: [],
     patch: [],

@@ -1,3 +1,15 @@
+/**
+ * 
+ * 
+ * This hook "abilities" is ONLY used to check user/role abilities (i.e. Permissions) at service level.
+ * It will only check user/role access/permissions to a service action.
+ * 
+ * For example : User has "create" permission for service "file-system"
+ * 
+ * 
+ */
+
+
 const { Ability, AbilityBuilder } = require('@casl/ability');
 const { permittedFieldsOf, rulesToQuery } = require('@casl/ability/extra');
 const TYPE_KEY = Symbol.for('type');
@@ -32,13 +44,13 @@ function subjectName(subject) {
 function defineAbilitiesFor(user) {
   const { rules, can } = AbilityBuilder.extract();
 
-  can('find', ['templates'], { name: 'Template toto' });
-  can('get', 'templates', ['name', 'description']);
+  can('find', ['test'], { name: 'Template toto' });
+  can('get', 'test');
 
-  if (user) {
-    can('get', ['templates'], { author: user._id });
-    can('delete', 'templates', { _id: user._id });
-  }
+  // if (user) {
+  //   can('get', ['templates'], { author: user._id });
+  //   can('delete', 'templates', { _id: user._id });
+  // }
 
   return new Ability(rules, { subjectName });
 }
@@ -49,10 +61,10 @@ function defineAbilitiesFor(user) {
 module.exports = function authorize(name = null) {
   return async function (hook) {
     var query;
-    const action = hook.method
-    const service = name ? hook.app.service(name) : hook.service
-    const serviceName = name || hook.path
-    const ability = defineAbilitiesFor(hook.params.user)
+    const action = hook.method;
+    const service = name ? hook.app.service(name) : hook.service;
+    const serviceName = name || hook.path;
+    const ability = defineAbilitiesFor(hook.params.user);
     var result = null;
 
     /**
@@ -60,7 +72,7 @@ module.exports = function authorize(name = null) {
      */
     const throwUnlessCan = (action, resource) => {
       if (ability.cannot(action, resource)) {
-        throw new Forbidden(`You are not allowed to ${action} ${serviceName}`)
+        throw new Forbidden(`You are not allowed to ${action} ${serviceName}`);
       }
     }
 
@@ -79,7 +91,6 @@ module.exports = function authorize(name = null) {
         const params = Object.assign({}, hook.params, { provider: null });
         result = await service.get(hook.id, params);
         result[TYPE_KEY] = serviceName;
-        const fields = permittedFieldsOf(ability, action, serviceName);
         throwUnlessCan(action, result);
         break;
     }

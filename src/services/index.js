@@ -10,6 +10,8 @@ const roles = require('./roles/roles.service.js');
 
 const serviceModel = require('./service-model/service-model.service.js');
 
+const test = require('./test/test.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(authentication); // Always has to be the first service
@@ -21,4 +23,5 @@ module.exports = function () {
   app.configure(fileSystem);
   app.configure(roles);
   app.configure(serviceModel);
+  app.configure(test);
 };

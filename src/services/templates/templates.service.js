@@ -19,6 +19,9 @@ module.exports = function () {
 
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('templates');
+  service.dataModel = function () {
+    return {};
+  }
 
   service.hooks(hooks);
 };
