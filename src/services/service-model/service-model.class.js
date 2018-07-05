@@ -25,20 +25,27 @@ class Service {
   }
 
   async get(id, params) {
-    var serviceModel = {};
+    var schema = false;
     var service = this._app.services[id];
 
-    if (service) {
-      if (service['getSchema']) {
-        serviceModel = service.getSchema();
-      } else {
-        throw new errors.NotImplemented(`Service ${id} doesn\'t implement data model`);
-      }
-    } else {
-      throw new errors.NotFound(`Service ${id} doesn\'t exist`);
-    }
+    // First try to get schema from db
+    try {
+      schema = await this._app.service('service-model-db').get(id);
+    } catch (error) { }
 
-    return serviceModel;
+    // If no service schema stored in DB, then request service to provide default schema
+    if (schema == false) {
+      if (service) {
+        if (service['getSchema']) {
+          schema = await service.getSchema();
+        } else {
+          throw new errors.NotImplemented(`Service ${id} doesn\'t implement data model`);
+        }
+      } else {
+        throw new errors.NotFound(`Service ${id} doesn\'t exist`);
+      }
+    }
+    return schema;
   }
 
   async create(data, params) {
