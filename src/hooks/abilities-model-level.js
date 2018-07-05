@@ -50,39 +50,42 @@ function defineAbilitiesFor(user, service = '') {
 }
 
 /**
- * "after hook" : checks for user service read field level permissions
+ * "after hook" : checks for user service read field level permissions and mask/clear data value for forbidden fields
  */
 function authorize_read(name = "") {
   return async function (hook) {
-    // TODO: implement the "read" field permission against requested data
     const serviceName = name || hook.path;
     var ability = defineAbilitiesFor(hook.params.user, serviceName);
-    var abilityProperty = "";
     var property = "";
-    var flatted_data = flatJSON(hook.result);
-    
-    for (var jsonProperty in flatted_data) {
+    var flattened_data = flatJSON(hook.result);
+
+    for (var jsonProperty in flattened_data) {
       // Compute flat string without array squared bracket for ability testing
       property = jsonProperty.replace(/\[[0-9]*\]/, "");
-      // typeOfProperty = typeof flatted_data[jsonProperty];
 
       if (!ability.can('read', jsonProperty)) {
-        flatted_data[jsonProperty] = "";
+        flattened_data[jsonProperty] = ""; // clear data
       }
     }
-    hook.result = unflatJSON(flatted_data);
+    hook.result = unflatJSON(flattened_data);
     return hook;
   }
 }
 
 /**
- * "before hook" : checks for user service update field level permissions
+ * "before hook" : checks for user service PATCH field level permissions -> Patch method tries to update only certain fields
+ * NOTE : Update method should not be checked with this hook as update method should replace all fields ==> Must be checked at "service-level" hook
  */
 function authorize_update(name = "") {
   return async function (hook) {
     const serviceName = name || hook.path;
     var ability = defineAbilitiesFor(hook.params.user, serviceName);
-    var data = flattenJson(hook.data);
+    var data = flatJSON(hook.data);
+    for (var property in data) {
+      if (ability.cannot('update', property)) {
+        throw new Forbidden(`You are not allowed to update field ${property} of model ${serviceName}`);
+      }
+    }
   }
 }
 
