@@ -16,7 +16,10 @@ class Service {
     // ]
     return {
       "foo": {
-        "bar": "foo.bar value"
+        "bar1": "foo.bar value",
+        "bar2": {
+          "bar3":"test depth 3"
+        }
       },
       "bar": "bar value",
       "namedArray": [

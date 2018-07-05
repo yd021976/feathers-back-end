@@ -50,49 +50,6 @@ function defineAbilitiesFor(user, service = '') {
 }
 
 /**
- * Transform strucutured JSON data to flat array properties list
- */
-function flattenJson(data, propertyKey = "", currentPath = "", separator = ".") {
-  var flattened = [];
-  var subFlattened = [];
-  var typeOfProperty = "", isArray = false;
-  var path = "", pathToData = "";
-  var flat = {
-    flat: "",
-    realPath: ""
-  }
-
-  for (var prop in data) {
-    typeOfProperty = typeof data[prop];
-    subFlattened = [];
-
-    /**
-     * 
-     */
-    pathToData = currentPath ? currentPath.concat(separator, prop) : prop;
-    
-    /**
-     * Ignore ARRAYs indexes for flat representation. The real path, including Array indexes could be found in the "path" property
-     */
-    if (!Array.isArray(data)) {
-      path = "";
-      path = propertyKey ? String.prototype.concat(propertyKey, separator, prop) : prop;
-      flattened[pathToData] = path;
-    }
-    /**
-     * Recursive analysis only if "prop" of "data" is not a primitive data type
-     */
-    if (data.hasOwnProperty(prop) && typeOfProperty != "string" && typeOfProperty != "boolean" && typeOfProperty != "number") {
-      subFlattened = flattenJson(data[prop], Array.isArray(data) ? propertyKey : prop, pathToData);
-    }
-
-    if (subFlattened.length != 0) flattened = flattened.concat(subFlattened);
-    
-  }
-  return flattened;
-
-}
-/**
  * "after hook" : checks for user service read field level permissions
  */
 function authorize_read(name = "") {
@@ -101,16 +58,19 @@ function authorize_read(name = "") {
     const serviceName = name || hook.path;
     var ability = defineAbilitiesFor(hook.params.user, serviceName);
     var abilityProperty = "";
-    var regexPath = "";
+    var property = "";
     var flatted_data = flatJSON(hook.result);
-    var unflatted_data = unflatJSON(flatted_data);
     
     for (var jsonProperty in flatted_data) {
       // Compute flat string without array squared bracket for ability testing
-      if (!ability.can('read', jsonProperty)) {
+      property = jsonProperty.replace(/\[[0-9]*\]/, "");
+      // typeOfProperty = typeof flatted_data[jsonProperty];
 
+      if (!ability.can('read', jsonProperty)) {
+        flatted_data[jsonProperty] = "";
       }
     }
+    hook.result = unflatJSON(flatted_data);
     return hook;
   }
 }

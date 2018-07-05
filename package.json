@@ -44,7 +44,6 @@
     "feathers-blob": "^1.5.0",
     "feathers-hooks-common": "^4.11.1",
     "feathers-nedb": "^2.7.0",
-    "flat": "^4.1.0",
     "flatnest": "^1.0.0",
     "fs-blob-store": "^5.2.1",
     "googleapis": "^20.2.0",
