@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Test service JSON Schemas",
+    "description": "The tests service JSON Schema that describe the data format used by this service",
+    "type": "object",
+    "properties": {
+      "foo": {
+        "description": "Foo description",
+        "type": "object",
+        "properties": {
+          "bar": {
+            "description": "Foo description",
+            "type": "string"
+          }
+        }
+      },
+      "namedArray": {
+        "description": "Foo description",
+        "type": "array",
+        "items": {
+          "description": "",
+          "type": "object",
+          "properties": {
+            "toto": {
+              "description": "",
+              "type": "string"
+            },
+            "titi": {
+              "description": "",
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }

@@ -9,16 +9,11 @@ class Service {
   }
 
   async get(id, params) {
-    // return
-    // [
-    //   { "item 1": 1 },
-    //   { "item 2": 2 }
-    // ]
     return {
       "foo": {
         "bar1": "foo.bar value",
         "bar2": {
-          "bar3":"test depth 3"
+          "bar3": "test depth 3"
         }
       },
       "bar": "bar value",
@@ -47,6 +42,14 @@ class Service {
 
   async remove(id, params) {
     return { id };
+  }
+
+  /**
+   * Return the JSON schema of this service
+   */
+  async getSchema() {
+    const schema = require('./test.schema.json');
+    return schema;
   }
 }
 

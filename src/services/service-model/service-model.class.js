@@ -29,8 +29,8 @@ class Service {
     var service = this._app.services[id];
 
     if (service) {
-      if (service['dataModel']) {
-        serviceModel = service.dataModel();
+      if (service['getSchema']) {
+        serviceModel = service.getSchema();
       } else {
         throw new errors.NotImplemented(`Service ${id} doesn\'t implement data model`);
       }
