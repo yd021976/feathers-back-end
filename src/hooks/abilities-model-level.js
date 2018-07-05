@@ -21,7 +21,8 @@ const { Ability, AbilityBuilder } = require('@casl/ability');
 const { permittedFieldsOf } = require('@casl/ability/extra');
 const TYPE_KEY = Symbol.for('type');
 const { Forbidden } = require('@feathersjs/errors');
-
+const flatJSON = require('flatnest').flatten;
+const unflatJSON = require('flatnest').nest;
 /**
  * Retrieve "subject" from hook result/data (i.e. The service name)
  */
@@ -99,9 +100,14 @@ function authorize_read(name = "") {
     // TODO: implement the "read" field permission against requested data
     const serviceName = name || hook.path;
     var ability = defineAbilitiesFor(hook.params.user, serviceName);
-    var data = flattenJson(hook.result);
-    for (var jsonProperty in data) {
-      if (!ability.can('read', data)) {
+    var abilityProperty = "";
+    var regexPath = "";
+    var flatted_data = flatJSON(hook.result);
+    var unflatted_data = unflatJSON(flatted_data);
+    
+    for (var jsonProperty in flatted_data) {
+      // Compute flat string without array squared bracket for ability testing
+      if (!ability.can('read', jsonProperty)) {
 
       }
     }
