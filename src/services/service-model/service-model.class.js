@@ -14,7 +14,7 @@ class Service {
 
   }
   /**
-   * FIND should return all available services
+   * FIND : Return all available services
    */
   async find(params) {
     var serviceList = [];
@@ -24,48 +24,45 @@ class Service {
     return serviceList;
   }
 
+  /**
+   * GET : Return JSON schema for a given service
+   * PARAMS :
+   *    id : Service name to retrieve schema from
+   *    params : object of the form 
+   *      style : "json" || "flat"
+   */
   async get(id, params) {
     var schema = false;
     var service = this._app.services[id];
 
-    // First try to get schema from db
-    try {
-      schema = await this._app.service('service-model-db').get(id);
-    } catch (error) { }
-
-    // If no service schema stored in DB, then request service to provide default schema
-    if (schema == false) {
-      if (service) {
-        if (service['getSchema']) {
-          schema = await service.getSchema();
-        } else {
-          throw new errors.NotImplemented(`Service ${id} doesn\'t implement data model`);
-        }
-      } else {
-        throw new errors.NotFound(`Service ${id} doesn\'t exist`);
+    // Request service method "getSchema" to provide default schema
+    if (service) {
+      if (service['getSchema']) {
+        schema = await service.getSchema();
+      } else { // if service doesn't implement "getSchema" method, throw error
+        throw new errors.NotImplemented(`Service ${id} doesn\'t implement data model`);
       }
+    } else {
+      throw new errors.NotFound(`Service ${id} doesn\'t exist`);
     }
+
     return schema;
   }
 
   async create(data, params) {
-    if (Array.isArray(data)) {
-      return Promise.all(data.map(current => this.create(current, params)));
-    }
-
-    return data;
+    throw new errors.NotImplemented(`Method "create" is not implemented`);
   }
 
   async update(id, data, params) {
-    return data;
+    throw new errors.NotImplemented(`Method "update" is not implemented`);
   }
 
   async patch(id, data, params) {
-    return data;
+    throw new errors.NotImplemented(`Method "patch" is not implemented`);
   }
 
   async remove(id, params) {
-    return { id };
+    throw new errors.NotImplemented(`Method "remove" is not implemented`);
   }
 }
 
