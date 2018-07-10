@@ -3,12 +3,18 @@
  */
 function userRole() {
   return async function (hook) {
-    var roleName = "";
+    var roleName = "anonymous";
 
-    if (hook.result['roleId'] && hook.result['anonymous']==false) {
-      roleName = await hook.app.service('roles').get(hook.result.roleId);
+    if (hook.result['role'] && (hook.result['anonymous'] == false || hook.result['anonymous'] === undefined)) {
+      try {
+        roleObj = await hook.app.service('roles').get(hook.result.role);
+        roleName = roleObj.name;
+      } catch (err) {
+        // No record found for role ID
+        roleName = "unknown";
+      }
     }
-    hook.result.roleName = roleName;
+    hook.result.role = roleName;
   }
 }
 
