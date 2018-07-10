@@ -13,8 +13,8 @@ module.exports = {
         `/${hook.path}` !== '/service-model' &&
         `/${hook.path}` !== '/test'
       ,
-      authenticate,
-      authorize()
+      authenticate
+      //authorize()
     )
     ],
     find: [],
@@ -29,7 +29,7 @@ module.exports = {
     all: [logger()],
     find: [],
     get: [
-      fieldPermission.authorize_read()
+      //fieldPermission.authorize_read()
     ],
     create: [],
     update: [],
