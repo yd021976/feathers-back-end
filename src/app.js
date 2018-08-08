@@ -32,7 +32,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 
-
 app.configure(socketio());
 app.configure(rest());
 
@@ -81,6 +80,5 @@ app.configure(services);
 // Configure middleware (see `middleware/index.js`) - always has to be last
 app.configure(middleware);
 app.hooks(appHooks);
-
 
 module.exports = app;
