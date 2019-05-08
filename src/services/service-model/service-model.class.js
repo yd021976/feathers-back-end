@@ -11,15 +11,36 @@ class Service {
    */
   setup(app) {
     this._app = app;
-
+  }
+  getSchema() {
+    const schema = require('./service-model.schema.json');
+    return schema;
   }
   /**
    * FIND : Return all available services
    */
   async find(params) {
     var serviceList = [];
+    var serviceObject = {};
+    var serviceSchema = null;
+
     for (var service of Object.keys(this._app.services)) {
-      serviceList.push(service);
+      serviceSchema = null
+      if (this._app.service(service)['getSchema']) {
+        serviceSchema = await this._app.service(service).getSchema()
+      }
+
+      // Skip the service if it is an internal service or if it haven't a schema definition
+      if (serviceSchema === null || serviceSchema['isInternalService'] == true) {
+        continue
+      }
+      serviceObject = {
+        id: service,
+        name: service,
+        description: serviceSchema !== null ? serviceSchema.description : '',
+        schema: serviceSchema !== null ? serviceSchema : {}
+      }
+      serviceList.push(serviceObject);
     }
     return serviceList;
   }

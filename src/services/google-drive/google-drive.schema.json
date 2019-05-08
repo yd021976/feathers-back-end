@@ -1,0 +1,21 @@
+{
+  "id": "google-drive",
+  "title": "Google drive parser",
+  "description": "Parse objects stored in the user personal google drive",
+  "isInternalService": false,
+  "fields_definition": {},
+  "actions": {
+    "read": {
+      "checkFieldAccess": false
+    },
+    "create": {
+      "checkFieldAccess": false
+    },
+    "delete": {
+      "checkFieldAccess": false
+    },
+    "update": {
+      "checkFieldAccess": false
+    }
+  }
+}

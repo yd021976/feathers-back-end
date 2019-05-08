@@ -1,0 +1,21 @@
+{
+  "id": "file-system",
+  "title": "File system (server side) parser",
+  "description": "Parse and manage (read, create, delete) the server side file system. Note that this service can't update/patch or create a file.\nFor those purposes, use 'file-upload' service instead.",
+  "isInternalService": false,
+  "fields_definition": {},
+  "actions": {
+    "read": {
+      "checkFieldAccess": false
+    },
+    "create": {
+      "checkFieldAccess": false
+    },
+    "delete": {
+      "checkFieldAccess": false
+    },
+    "update": {
+      "checkFieldAccess": false
+    }
+  }
+}

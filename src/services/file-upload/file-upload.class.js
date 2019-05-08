@@ -1,20 +1,23 @@
 /* eslint-disable no-unused-vars */
 class Service {
-  constructor (options) {
+  constructor(options) {
     this.options = options || {};
   }
-
-  find (params) {
+  getSchema() {
+    const schema = require('./file-upload.schema.json');
+    return schema
+  }
+  find(params) {
     return Promise.resolve([]);
   }
 
-  get (id, params) {
+  get(id, params) {
     return Promise.resolve({
       id, text: `A new message with ID: ${id}!`
     });
   }
 
-  create (data, params) {
+  create(data, params) {
     if (Array.isArray(data)) {
       return Promise.all(data.map(current => this.create(current)));
     }
@@ -22,15 +25,15 @@ class Service {
     return Promise.resolve(data);
   }
 
-  update (id, data, params) {
+  update(id, data, params) {
     return Promise.resolve(data);
   }
 
-  patch (id, data, params) {
+  patch(id, data, params) {
     return Promise.resolve(data);
   }
 
-  remove (id, params) {
+  remove(id, params) {
     return Promise.resolve({ id });
   }
 }

@@ -1,36 +1,32 @@
 {
-    "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "Test service JSON Schemas",
-    "description": "The tests service JSON Schema that describe the data format used by this service",
-    "type": "object",
-    "properties": {
-      "foo": {
-        "description": "Foo description",
-        "type": "object",
-        "properties": {
-          "bar": {
-            "description": "Foo description",
-            "type": "string"
-          }
-        }
-      },
-      "namedArray": {
-        "description": "Foo description",
-        "type": "array",
-        "items": {
-          "description": "",
-          "type": "object",
-          "properties": {
-            "toto": {
-              "description": "",
-              "type": "string"
-            },
-            "titi": {
-              "description": "",
-              "type": "string"
-            }
-          }
-        }
-      }
+  "id": "test",
+  "title": "Test service schema",
+  "description": "Service used only for testing purposes",
+  "isInternalService": false,
+  "fields_definition": {
+    "id": {
+      "id": "id",
+      "name": "id",
+      "type": "string"
+    },
+    "name": {
+      "id": "name",
+      "name": "name",
+      "type": "string"
+    }
+  },
+  "actions": {
+    "read": {
+      "checkFieldAccess": true
+    },
+    "create": {
+      "checkFieldAccess": false
+    },
+    "delete": {
+      "checkFieldAccess": false
+    },
+    "update": {
+      "checkFieldAccess": true
     }
   }
+}

@@ -1,0 +1,98 @@
+{
+  "id": "roles",
+  "title": "Roles definition",
+  "description": "Whole application roles definition with 'services' ACL (crud operations and field access)",
+  "isInternalService": false,
+  "fields_definition": [
+    {
+      "id": "id",
+      "name": "id",
+      "type": "string"
+    },
+    {
+      "id": "name",
+      "name": "name",
+      "type": "string"
+    },
+    {
+      "id": "services",
+      "name": "services",
+      "type": "array",
+      "children": [
+        {
+          "id": "id",
+          "name": "id",
+          "type": "string"
+        },
+        {
+          "id": "name",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "id": "actions",
+          "name": "actions",
+          "type": "array",
+          "children": [
+            {
+              "id": "id",
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "id": "name",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "id": "allowed",
+              "name": "allowed",
+              "type": "string"
+            },
+            {
+              "id":"fields",
+              "name":"fields",
+              "type":"array",
+              "children":[
+                {
+                  "id":"uid",
+                  "name":"uid",
+                  "type":"string"
+                },
+                {
+                  "id":"name",
+                  "name":"name",
+                  "type":"string"
+                },
+                {
+                  "id":"type",
+                  "name":"type",
+                  "type":"string"
+                },
+                {
+                  "id":"allowed",
+                  "name":"allowed",
+                  "type":"string"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "actions": {
+    "read": {
+      "checkFieldAccess": true
+    },
+    "create": {
+      "checkFieldAccess": false
+    },
+    "delete": {
+      "checkFieldAccess": false
+    },
+    "update": {
+      "checkFieldAccess": true
+    }
+  }
+}

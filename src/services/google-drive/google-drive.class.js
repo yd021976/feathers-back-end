@@ -5,7 +5,10 @@ class Service {
     this.options = options || {};
     this.events = ['googleService-get-progress'];
   }
-
+  getSchema() {
+    const schema = require('./google-drive.schema.json');
+    return schema;
+  }
   setup(app) {
     // auth client
     var _this = this;

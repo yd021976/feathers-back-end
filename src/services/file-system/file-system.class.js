@@ -36,6 +36,13 @@ class Service {
     this.blobService = blobService({ Model: blobStorage });
   }
   /**
+   * Get schema definition for this service
+   */
+  getSchema() {
+    const schema = require('./file-system.schema.json');
+    return schema
+  }
+  /**
    * Define access permissions for casl/abilities library
    */
   capabilities() {

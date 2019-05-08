@@ -9,7 +9,7 @@
 //    > path : [String] the path to store file, is relative to the root './uploads' and MUST NOT contains trailing and leading '/'
 //    > convertToPDF : [boolean] set to true if you want to convert PDF into image. Note: Only the first PDF page will be converted
 // 
-// const createService = require('./file-upload.class.js');
+const createService = require('./file-upload.class.js');
 const hooks = require('./file-upload.hooks');
 
 const blobService = require("feathers-blob");
@@ -18,7 +18,7 @@ const blobStorage = fs("./uploads");
 const multer = require('multer');
 const multipartMiddleware = multer();
 
-module.exports = function() {
+module.exports = function () {
   const app = this;
   const paginate = app.get('paginate');
 
@@ -38,11 +38,12 @@ module.exports = function() {
     multipartMiddleware.single('uri'),
     // another middleware, this time to
     // transfer the received file to feathers
-    function(req,res,next){
-        req.feathers.file = req.file;
-        next();
+    function (req, res, next) {
+      req.feathers.file = req.file;
+      next();
     },
-    blobService({ Model: blobStorage })
+    // blobService({ Model: blobStorage }),
+    createService(options)
   );
 
   // Get our initialized service so that we can register hooks and filters
