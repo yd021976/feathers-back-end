@@ -150,14 +150,11 @@ class Service {
     return Promise.resolve(data);
   }
 
-  update(id, data, params) {
-    throw new Error('Update method is not available for this service');
-  }
-
-  patch(id, data, params) {
-    throw new Error('Update method is not available for this service');
-  }
-
+  /**
+   * 
+   * @param {*} id 
+   * @param {*} params 
+   */
   remove(id, params) {
     return this.blobService.remove(id);
   }

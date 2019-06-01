@@ -18,7 +18,7 @@
       "id": "services",
       "name": "services",
       "type": "array",
-      "children": [
+      "fields": [
         {
           "id": "id",
           "name": "id",
@@ -33,7 +33,7 @@
           "id": "actions",
           "name": "actions",
           "type": "array",
-          "children": [
+          "fields": [
             {
               "id": "id",
               "name": "id",
@@ -50,29 +50,29 @@
               "type": "string"
             },
             {
-              "id":"fields",
-              "name":"fields",
-              "type":"array",
-              "children":[
+              "id": "fields",
+              "name": "fields",
+              "type": "array",
+              "fields": [
                 {
-                  "id":"uid",
-                  "name":"uid",
-                  "type":"string"
+                  "id": "uid",
+                  "name": "uid",
+                  "type": "string"
                 },
                 {
-                  "id":"name",
-                  "name":"name",
-                  "type":"string"
+                  "id": "name",
+                  "name": "name",
+                  "type": "string"
                 },
                 {
-                  "id":"type",
-                  "name":"type",
-                  "type":"string"
+                  "id": "type",
+                  "name": "type",
+                  "type": "string"
                 },
                 {
-                  "id":"allowed",
-                  "name":"allowed",
-                  "type":"string"
+                  "id": "allowed",
+                  "name": "allowed",
+                  "type": "string"
                 }
               ]
             }

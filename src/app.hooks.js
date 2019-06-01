@@ -12,6 +12,8 @@ module.exports = {
         `/${hook.path}` !== hook.app.get('authentication').path &&
         `/${hook.path}` !== '/service-model' &&
         `/${hook.path}` !== '/test'
+        //  &&
+        // `/${hook.path}` !== '/resources-locks'
       ,
       authenticate
       //authorize()
