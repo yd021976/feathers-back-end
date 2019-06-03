@@ -27,7 +27,7 @@
     "mocha": "mocha test/ --recursive"
   },
   "dependencies": {
-    "@casl/ability": "^2.3.0",
+    "@casl/ability": "^3.0.2",
     "@feathersjs/authentication": "^2.1.5",
     "@feathersjs/authentication-jwt": "^2.0.0",
     "@feathersjs/authentication-local": "^1.1.3",
@@ -49,7 +49,7 @@
     "googleapis": "^20.2.0",
     "helmet": "^3.12.0",
     "live-mutex": "^0.1.1059",
-    "mmmagic": "^0.4.6",
+    "mmmagic": "^0.5.3",
     "multer": "^1.3.0",
     "nedb": "^1.8.0",
     "passport-custom": "^1.0.5",

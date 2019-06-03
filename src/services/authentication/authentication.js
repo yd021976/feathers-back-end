@@ -3,7 +3,7 @@ const jwt = require('@feathersjs/authentication-jwt');
 const local = require('@feathersjs/authentication-local');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const commonHooks = require('feathers-hooks-common');
-
+const hooks = require('./hooks');
 /** 
  * Define custom strategy "anonymous"
  */
@@ -58,11 +58,12 @@ module.exports = function (app) {
       ]
     },
     after: {
+      all: [],
+      get: [],
       create: [
-        (hook) => {
-          let a = 0;
-        }
-      ]
+        hooks.after_create
+      ],
+      remove: []
     }
   });
 };
