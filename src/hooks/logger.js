@@ -1,8 +1,10 @@
 // A hook that logs service method before, after and error
 const logger = require('winston');
 
+
 module.exports = function () {
   return function (hook) {
+    logger.level = hook.app.get('winston_log_level')
     let message = `${hook.type}: ${hook.path} - Method: ${hook.method}`;
 
     if (hook.type === 'error') {

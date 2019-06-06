@@ -1,25 +1,24 @@
 const errors = require('@feathersjs/errors');
 const lmx = require('live-mutex');
 const userLocks = require('./utils/user_locks.class.js');
-
-
+const debug = require('debug')('resources_locks')
 /**
  * 
  */
 class Service {
+  /**
+   * 
+   * @param {*} options 
+   */
   constructor(options) {
     this.options = options || {};
-    this.locks = new Map() // Map of userId => Locks objects
     this.app = null
     this.locks = new userLocks.UserLocks()
 
     /**
      * Listen to lock expire events
      */
-    this.locks.on('lock expired', (user, resource_id) => {
-      let a = 0
-    })
-    this.locks.on('lock expired error', (user, resource_id, error) => {
+    this.locks.on('lock expired', (result) => {
       let a = 0
     })
   }
@@ -69,16 +68,16 @@ class Service {
     } else {
       throw new errors.NotAuthenticated("Resource lock are only available with authenticated users");
     }
-
+    if (!params.query['ttl']) params.query['ttl'] = 3600000
     /**
      * 
      */
-    return this.locks.lockResource(params.user._id, resource_id_to_lock, 60000)
-      .then((locked) => {
-        let a = 0
+    return this.locks.lock(params.user._id, resource_id_to_lock, params.query['ttl'])
+      .then((lockInfos) => {
+        return this._buildResponse(lockInfos.key, lockInfos.id, lockInfos.acquired, params.user._id, "Lock successfull")
       })
       .catch(err => {
-        let a = 0
+        return this._buildResponse(resource_id_to_lock, null, false, params.user._id, "Resource NOT locked")
       })
 
   }
