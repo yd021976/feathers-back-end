@@ -81,4 +81,19 @@ app.configure(services);
 app.configure(middleware);
 app.hooks(appHooks);
 
+app.on('connection', (connection) => {
+    app.channel('anonymous').join(connection)
+})
+app.publish('MyEvent', data => {
+    return app.channel('anonymous')
+})
+
+app.publish('logout', (params) => {
+    let a = 0
+})
+app.publish('logout-user', (params) => {
+    let a = 0
+})
+
+
 module.exports = app;

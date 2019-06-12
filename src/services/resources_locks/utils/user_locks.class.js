@@ -2,11 +2,9 @@ const lmx = require('live-mutex');
 const EventEmitter = require('events');
 const lock_errors = require('./user_locks_errors');
 const resource_lock_debug = require('debug')('users_locks:lock');
+const resource_mutex_debug = require('debug')('users_locks:mutex');
 const resource_unlock_debug = require('debug')('users_locks:unlock');
-const resource_timeout_debug = require('debug')('user_locks:timeout');
-const resource_lock_mutex_debug = require('debug')('user_locks:mutex_lock');
-const resource_unlock_mutex_debug = require('debug')('user_locks:mutex_unlock');
-
+const resource_timeout_debug = require('debug')('users_locks:timeout');
 /**
  * @description Resource lock infos & state
  */
@@ -46,7 +44,6 @@ class LmxClientConfig {
         this.ttl = null
     }
 }
-
 
 /**
  * @description LMX locks for users
@@ -117,6 +114,33 @@ class UserLocks extends EventEmitter {
     }
 
     /**
+     * @description unlock all user locks & timers
+     * @param {string} user 
+     */
+    clearUserLocks(user) {
+        return new Promise((resolve, reject) => {
+            let mutex_id = ''
+            let all_promises = [] // Array of promises
+
+            const user_locks = this._getUserLocks(user)
+            if (!user_locks) return
+            
+            user_locks.forEach((lock_infos, resource_id) => {
+                // Unlock resource if current state is 'locked'
+                if (lock_infos.state == 'locked')
+                    all_promises.push(this.unlock(user, resource_id))
+            })
+
+            return Promise.all(all_promises)
+                .then((results) => {
+                    return resolve(results)
+                })
+                .catch(err => {
+                    throw err
+                })
+        })
+    }
+    /**
      * @description Sets expiration delay for a resource lock
      * @private
      * 
@@ -147,7 +171,7 @@ class UserLocks extends EventEmitter {
                     return resource_lock_infos
                 })
                 .then((resource_unlock) => {
-                    return this._unlockResource(user, resource_unlock.unlock, resource_id)
+                    return this._unlockResource(user, resource_unlock, resource_id)
                 })
                 .then((updated_resource_unlock_infos) => {
                     resource_timeout_debug('SUCCESS: Resource unlocked', [resource_id, user, updated_resource_unlock_infos.state])
@@ -170,29 +194,15 @@ class UserLocks extends EventEmitter {
         }, ttl, user, resource_id)
     }
 
-
-
-
-
-
-
-
-    /**************************************************************************************************************************************************************************
-     *                                                                          New code here !!!
-     **************************************************************************************************************************************************************************/
-
     /**
      * 
      * @param {string} user 
      * @param {string} resource_id
      * @param {number} ttl 
+     * @returns {Promise<LockObj>}
      */
     lock(user, resource_id, ttl = null) {
         return new Promise((resolve, reject) => {
-            let user_locks // User locks map
-            let resource_lock // Resource lock current data (from user locks map)
-            let resource_lock_sucess // resource lock success data
-            let resource_lock_timer = null // timeout for locked resource
             const mutex_id = user + ':' + resource_id // Internal mutex id
             let internal_mutex_unlock = null // Internal mutex unlock infos
 
@@ -216,13 +226,12 @@ class UserLocks extends EventEmitter {
                 })
                 // Check user hasn't already locked this resource
                 .then((locks) => {
-                    user_locks = locks
-                    resource_lock = user_locks.get(resource_id)
+                    const resource_lock = locks.get(resource_id)
                     if (resource_lock && resource_lock.state == 'locked') {
                         resource_lock_debug('WARNING : User has already locked resource', [user, resource_id, resource_lock.id, resource_lock.state]);
                         throw new lock_errors.lockAlreadyAcquired('User already lock resource', { user: user, resource_id: resource_id, lock_id: resource_lock.id })
                     } else {
-                        return resource_lock
+                        return
                     }
                 })
                 // Try to lock resource id
@@ -231,21 +240,25 @@ class UserLocks extends EventEmitter {
                 })
                 // Resource successfully locked, set lock timeout if ttl is provided
                 .then(resource_lock_infos => {
-                    resource_lock_sucess = resource_lock_infos
+                    let timer = null
+                    /**
+                     * Set TTL for resource lock
+                     */
                     if (ttl)
-                        return this._setResourceTimeout(user, resource_id, ttl)
-                    else
-                        return null
+                        timer = this._setResourceTimeout(user, resource_id, ttl)
+
+                    // Update resource lock infos
+                    resource_lock_infos.timer = timer
+                    this._setResourceLockInfos(user, resource_id, resource_lock_infos)
+
+                    return
                 })
                 // Unlock internal mutex
-                .then((resource_timer) => {
-                    resource_lock_timer = resource_timer
+                .then(() => {
                     return this._unlockInternalMutex(mutex_id, internal_mutex_unlock)
                 })
-                // lock successfull
                 .then(() => {
-                    user_locks.set(resource_id, { unlock: resource_lock_sucess, timer: resource_lock_timer, state: 'locked' })
-                    return resolve(resource_lock_sucess)
+                    return resolve(this._getResourceLockInfos(user, resource_id))
                 })
                 // Error occured
                 .catch(err => {
@@ -254,6 +267,11 @@ class UserLocks extends EventEmitter {
                     // If internal mutex is locked, try to unlock
                     if (internal_mutex_unlock) {
                         this._unlockInternalMutex(mutex_id, internal_mutex_unlock)
+                    }
+
+                    // Assume that if code is request_timeout, the lock is already locked by someone
+                    if (err['code'] == 'request_timeout') {
+                        err.message = 'Resource already locked by someone'
                     }
                     /**
                      * Handle error in promise chain
@@ -295,7 +313,7 @@ class UserLocks extends EventEmitter {
             // Update lock infos & clear any timer
             .then((resource_unlock_result) => {
                 this._setResourceLockInfos(user, resource_id, resource_unlock_result)
-                return this._unlockInternalMutex(mutex_id, internal_mutex_unlock)
+                return this._unlockInternalMutex(mutex_id, mutex_unlock)
             })
             .then(() => {
                 // return resource lock infos
@@ -305,7 +323,7 @@ class UserLocks extends EventEmitter {
                 // If internal mutex locked, try to unlock
                 if (mutex_unlock) this._unlockInternalMutex(mutex_id, mutex_unlock)
 
-                resource_unlock_debug('ERROR: Resource not unlocked', [user, resource_id, err])
+                resource_unlock_debug('ERROR: Unlock resource error', [user, resource_id, err])
                 throw err
             })
     }
@@ -320,11 +338,11 @@ class UserLocks extends EventEmitter {
                 return this._mutex.lockp(mutex_id)
             })
             .then((unlock) => {
-                resource_lock_mutex_debug('INFO: Internal mutex locked', [mutex_id])
+                resource_mutex_debug('INFO: Internal mutex locked', [mutex_id])
                 return unlock
             })
             .catch(err => {
-                resource_lock_mutex_debug('ERROR: Internal mutex not locked', [mutex_id, err])
+                resource_mutex_debug('ERROR: Internal mutex not locked', [mutex_id, err])
                 throw err
             })
     }
@@ -340,11 +358,11 @@ class UserLocks extends EventEmitter {
                 return this._mutex.release(mutex_id, mutex_unlock.id)
             })
             .then((unlocked) => {
-                resource_unlock_mutex_debug('INFO: Internal mutex released', [mutex_id])
+                resource_mutex_debug('INFO: Internal mutex released', [mutex_id])
                 return unlocked
             })
             .catch(err => {
-                resource_unlock_mutex_debug('ERROR: Internal mutex not released', [mutex_id, err])
+                resource_mutex_debug('ERROR: Internal mutex not released', [mutex_id, err])
                 throw err
             })
     }
@@ -356,6 +374,7 @@ class UserLocks extends EventEmitter {
      * 
      * @param {*} user 
      * @param {*} resource_id 
+     * @returns {Promise<LockObj>}
      * 
      */
     _lockResource(user, resource_id) {
@@ -368,7 +387,8 @@ class UserLocks extends EventEmitter {
             })
             .then((resource_lock) => {
                 resource_lock_debug('INFO: Resource locked', [user, resource_id, resource_lock.id, resource_lock.acquired])
-                return resource_lock
+                let results = new LockObj('locked', null, resource_lock)
+                return results
             })
             .catch(err => {
                 throw err
@@ -390,6 +410,7 @@ class UserLocks extends EventEmitter {
                 return this.lmxClient.unlockp(resource_id, lock_object.unlock.id)
             })
             .then((unlocked) => {
+                resource_unlock_debug('INFO: Resource unlocked', [user, resource_id, unlocked])
                 // Cancel the lock expiration timer
                 if (lock_object.timer) clearTimeout(lock_object.timer)
 
@@ -422,6 +443,15 @@ class UserLocks extends EventEmitter {
         return resource_lock_infos
     }
 
+    /**
+     * @description Get all user locks
+     * @param {string} user
+     * @returns {Map<string,LockObj>} 
+     */
+    _getUserLocks(user) {
+        const user_locks = this.locks.get(user)
+        return user_locks
+    }
     /**
      * Sets or override if exist the lock infos for a user/resource
      * 

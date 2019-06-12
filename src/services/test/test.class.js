@@ -2,13 +2,19 @@
 class Service {
   constructor(options) {
     this.options = options || {};
+    this.events = ['MyEvent']
   }
 
+  setup(app) {
+    this.app = app
+  }
   async find(params) {
     return [];
   }
 
   async get(id, params) {
+    this.emit('MyEvent', { message: 'Hello world' });
+
     return {
       "foo": {
         "bar1": "foo.bar value",

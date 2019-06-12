@@ -15,6 +15,16 @@ module.exports = function (app) {
 
   // Get our initialized service so that we can register hooks and filters
   const service = app.service('test');
-
+  
+  // Register hooks
   service.hooks(hooks);
+  
+  /**
+   * Disable event publishing if wanted
+   */
+
+  // if (typeof service.publish === 'function') {
+  //   service.publish(() => false);
+  // }
+  
 };

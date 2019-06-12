@@ -2,6 +2,8 @@ const errors = require('@feathersjs/errors');
 const lmx = require('live-mutex');
 const userLocks = require('./utils/user_locks.class.js');
 const debug = require('debug')('resources_locks')
+const feathersApp = require('@feathersjs/feathers/lib/application')
+
 /**
  * 
  */
@@ -23,19 +25,29 @@ class Service {
     })
   }
 
+  /**
+   * 
+   * @param {feathersApp} app 
+   * @param {string} path 
+   */
   setup(app, path) {
+    // Set feathers app
     this.app = app
-    app.on('logout', (logout) => {
-      // TODO: unlock all user's locked resources
-      let a = 0;
+
+    // User logout or token has expired
+    //
+    // TODO: unlock all user's locked resources
+    app.on('logout user', (payload) => {
+        return this.locks.clearUserLocks(payload.user.userId)
     })
-    app.on('login', async (login) => {
-      let a = 0
+
+    /**
+     * 
+     */
+    app.on('login user', async (login) => {
+      this.locks.registerUser(login.user._id)
     })
-    app.on('login expired', (payload) => {
-      // TODO: unlock all user's locked resources
-      let a = 0
-    })
+
     // Start LMX Broker
     return new lmx.Broker().ensure().then((broker) => {
       this.broker = broker
@@ -60,6 +72,8 @@ class Service {
    * @param {any} params 
    */
   get(resource_id_to_lock, params) {
+    const resource_ttl = params.query['ttl'] || null;
+
     /**
      * If user is auth, retrieve or create store of resources locks
      */
@@ -68,18 +82,16 @@ class Service {
     } else {
       throw new errors.NotAuthenticated("Resource lock are only available with authenticated users");
     }
-    if (!params.query['ttl']) params.query['ttl'] = 3600000
     /**
      * 
      */
-    return this.locks.lock(params.user._id, resource_id_to_lock, params.query['ttl'])
+    return this.locks.lock(params.user._id, resource_id_to_lock, resource_ttl)
       .then((lockInfos) => {
-        return this._buildResponse(lockInfos.key, lockInfos.id, lockInfos.acquired, params.user._id, "Lock successfull")
+        return this._buildResponse(lockInfos.unlock.key, lockInfos.unlock.id, lockInfos.state, params.user._id, "Lock successfull")
       })
       .catch(err => {
-        return this._buildResponse(resource_id_to_lock, null, false, params.user._id, "Resource NOT locked")
+        return this._buildResponse(resource_id_to_lock, null, null, params.user._id, err.message)
       })
-
   }
 
 
@@ -91,46 +103,31 @@ class Service {
    */
   remove(resourceId_to_unlock, params) {
     if (!params.user) throw new errors.Unprocessable("User must be authenticated and should be set in method params")
-    return this.locks.unlockResource(params.user._id, resourceId_to_unlock)
+    return this.locks.unlock(params.user._id, resourceId_to_unlock)
       .then((unlocked) => {
-        let a = 0
+        return this._buildResponse(unlocked.unlock.key, unlocked.unlock.id, unlocked.state, params.user._id, 'Unlock successfull')
       })
       .catch(err => {
-        let a = 0
+        return this._buildResponse(resourceId_to_unlock, null, false, params.user._id, err.message)
       })
   }
 
-  /**
-   * Check if a client has acquired resource
-   * 
-   * @param {Lock} lock 
-   */
-  _isLockAcquired(lock) {
-    if (!lock) return false
-
-    if (lock.unlock) {
-      return lock.unlock.acquired
-    }
-    else {
-      return false
-    }
-  }
   /**
    * Build service response
    * 
    * @param {string} resName Lock resource ID/Name
    * @param {string} lockid ID of the obtain/released lock
-   * @param {boolean} acquired Is resource locked ?
+   * @param {string} state Is resource locked ?
    * @param {string} userid Id of the user that requested service method
    * @param {string} message Free message to return
    */
-  _buildResponse(resName, lockid, acquired, userid, message) {
+  _buildResponse(resName, lockid, state, userid, message) {
     return {
       "lockInfos": {
-        "userId": userid,
-        "resourceName": resName,
-        "lockId": lockid,
-        "lockAcquired": acquired,
+        "user": userid,
+        "resource_name": resName,
+        "id": lockid,
+        "state": state,
         "message": message
       }
     }

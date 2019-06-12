@@ -27,6 +27,9 @@ module.exports = function (app) {
   // const app = this;
   const config = app.get('authentication');
 
+  // Add custom events
+  authentication.service.Service.prototype.events = ['user-token-expired']
+
   // Add a "get" rest method to get cookie config so client can get the cookie name
   authentication.service.Service.prototype.get = function (id, params) {
     var _this = this;
@@ -35,12 +38,37 @@ module.exports = function (app) {
       resolve(cookieConfig);
     });
   }
+
+  // List of removed tokens
+  authentication.service.Service.prototype.removedTokens = []
+
   // Set up authentication with the secret
   app.configure(authentication(config));
   app.configure(jwt());
   app.configure(local(config.local));
   // Configure anonymous strategy
   app.configure(anonymous(config['anonymous']));
+
+
+  /**
+   * Configure channels and publish handlers
+   */
+  app.on('login', (payload, { connection }) => {
+    const channel = `auth/${connection.payload.userId}`
+    app.channel(channel).join(connection)
+  })
+  app.on('logout', async (payload) => {
+    const user_payload = await app.passport.verifyJWT(payload, { secret: app.get('authentication').secret, jwt: { ignoreExpiration: true } })
+    const channel = `auth/${connection.payload.userId}`
+
+    app.channel(channel).leave((connection) => {
+      let a = 0
+    })
+  })
+  app.service('authentication').publish('user-token-expired', (data) => {
+    const channel = `auth/${data.user.userId}`
+    return app.channel(channel)
+  })
 
   // The `authentication` service is used to create a JWT.
   // The before `create` hook registers strategies that can be used
@@ -53,9 +81,7 @@ module.exports = function (app) {
       create: [
         authentication.hooks.authenticate(config.strategies)
       ],
-      remove: [
-        authentication.hooks.authenticate('jwt')
-      ]
+      remove: []
     },
     after: {
       all: [],
@@ -63,7 +89,12 @@ module.exports = function (app) {
       create: [
         hooks.after_create
       ],
-      remove: []
+      remove: [
+        /**
+         * After remove hook : Emits "logout" event with user object that logs out 
+         */
+        hooks.after_remove
+      ]
     }
   });
 };
