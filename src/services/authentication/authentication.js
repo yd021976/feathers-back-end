@@ -54,6 +54,9 @@ module.exports = function (app) {
    * Configure channels and publish handlers
    */
   app.on('login', (payload, { connection }) => {
+    // Do nothing if no connection (i.e. REST api)
+    if (!connection) return
+
     const channel = `auth/${connection.payload.userId}`
     app.channel(channel).join(connection)
   })

@@ -81,18 +81,23 @@ class UserLocks extends EventEmitter {
 
 
     /**
+     * Retrieve locks owned by a user
      * 
+     * @param {string} user
+     * @returns {Array<LockObj>} locks list
      */
-    getLockList() {
+    getLockList(user) {
         let locks = []
-        this.locks.forEach((user_locks) => {
+        this.locks.forEach((user_locks, owner) => {
             user_locks.forEach((unlock, resource_id) => {
-                if (!locks[resource_id]) {
-                    locks[resource_id] = unlock
+                // Retrieve locks own by the user
+                if (user != null && owner == user) {
+                    if (!locks[resource_id]) {
+                        locks.push({ resource:resource_id, lock: new LockObj(unlock.state, unlock.timer, unlock.unlock.id), user: owner })
+                    }
                 }
             })
         })
-
         return locks
     }
 
@@ -124,7 +129,7 @@ class UserLocks extends EventEmitter {
 
             const user_locks = this._getUserLocks(user)
             if (!user_locks) return
-            
+
             user_locks.forEach((lock_infos, resource_id) => {
                 // Unlock resource if current state is 'locked'
                 if (lock_infos.state == 'locked')
@@ -229,7 +234,7 @@ class UserLocks extends EventEmitter {
                     const resource_lock = locks.get(resource_id)
                     if (resource_lock && resource_lock.state == 'locked') {
                         resource_lock_debug('WARNING : User has already locked resource', [user, resource_id, resource_lock.id, resource_lock.state]);
-                        throw new lock_errors.lockAlreadyAcquired('User already lock resource', { user: user, resource_id: resource_id, lock_id: resource_lock.id })
+                        throw new lock_errors.lockAlreadyAcquired('User already lock resource', { user: user, resource_id: resource_id, lock_id: resource_lock.unlock.id, state: resource_lock.state })
                     } else {
                         return
                     }
@@ -398,7 +403,8 @@ class UserLocks extends EventEmitter {
      * @description Unlock resource assuming internal mutex is acquired. When successful, if any clear resource timeout and return a new state of resource lock
      * @private
      * 
-     * @param {string} user 
+     * @param {string} user
+     * @param {LockObj} lock_object
      * @param {string} resource_id
      * @returns {LockObj} resource unlock data
      */

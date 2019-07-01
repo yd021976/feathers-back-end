@@ -38,7 +38,7 @@ class Service {
     //
     // TODO: unlock all user's locked resources
     app.on('logout user', (payload) => {
-        return this.locks.clearUserLocks(payload.user.userId)
+      return this.locks.clearUserLocks(payload.user.userId)
     })
 
     /**
@@ -57,13 +57,61 @@ class Service {
 
 
   /**
+   * Get app resources locks owned by current authenticated user
    * 
-   * @param {string} id 
-   * @param {any} params 
+   * Additionnal query params
+   * ------------------------
+   * <all_owners> : if set to true AND user role is admin, then "find" will Retrieve locks owned by all users
+   * 
+   * @param {any} params
    */
-  find(id, params) {
-    const keys = Array.from(this.broker.locks.keys())
-    return Promise.resolve(keys);
+  async find(params) {
+    let promises = []
+    let users = []
+    const all_owners = params.query.all_owner == 'true' || params.query.all_owner == true
+
+    // User should be authenticated, else throw error
+    if (!params.user) {
+      throw errors.NotAuthenticated('User is not authenticated')
+    }
+
+    // If we want to get locks owned by all users (user must be admin)
+    if (params.user.role == "admin" && all_owners) {
+      try {
+        const all_users = await this.app.service('users').find()
+        all_users.data.forEach(user => {
+          // Do not add current authenticated user in the list as it will be added before requesting locks
+          if (user._id != params.user._id) {
+            users.push(user)
+          }
+        })
+      }
+      catch (e) {
+        // Do nothing here
+      }
+    }
+
+    // Add current authenticated user in request list
+    users.push(params.user)
+
+    users.forEach(user => {
+      promises.push(this.locks.getLockList(user._id))
+    })
+
+    let result = {}, temp_response
+    return Promise.all(promises)
+      .then((locks_list) => {
+        locks_list.forEach((locks) => {
+          locks.forEach((lockObj, lock_id) => {
+            temp_response = this._buildResponse(lockObj.resource, lockObj.lock.unlock, lockObj.lock.state, lockObj.user, '')
+            result[lockObj.resource] = temp_response
+          })
+        })
+        return result
+      })
+      .catch(err => {
+        throw err
+      })
   }
 
   /**
@@ -90,7 +138,8 @@ class Service {
         return this._buildResponse(lockInfos.unlock.key, lockInfos.unlock.id, lockInfos.state, params.user._id, "Lock successfull")
       })
       .catch(err => {
-        return this._buildResponse(resource_id_to_lock, null, null, params.user._id, err.message)
+        const response = this._buildResponse(resource_id_to_lock, err['data']['lock_id'] || null, err['data']['state'] || null, params.user._id, err.message)
+        throw new errors.FeathersError(err.message, 'resources-locks-error', errors[500], err.name, response)
       })
   }
 
