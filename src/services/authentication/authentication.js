@@ -2,8 +2,13 @@ const authentication = require('@feathersjs/authentication');
 const jwt = require('@feathersjs/authentication-jwt');
 const local = require('@feathersjs/authentication-local');
 const { authenticate } = require('@feathersjs/authentication').hooks;
+const feathers_errors = require('@feathersjs/errors')
 const commonHooks = require('feathers-hooks-common');
 const hooks = require('./hooks');
+const ms = require('ms');
+
+
+
 /** 
  * Define custom strategy "anonymous"
  */
@@ -27,6 +32,10 @@ module.exports = function (app) {
   // const app = this;
   const config = app.get('authentication');
 
+  // check token expiration must be > 30s
+  const expire = ms(config.jwt.expiresIn)
+  // if (expire < 30000) throw new Error('Token expiration must be higher then 30 seconds')
+
   // Add custom events
   authentication.service.Service.prototype.events = ['user-token-expired']
 
@@ -49,25 +58,9 @@ module.exports = function (app) {
   // Configure anonymous strategy
   app.configure(anonymous(config['anonymous']));
 
-
   /**
-   * Configure channels and publish handlers
+   * Service Publishers
    */
-  app.on('login', (payload, { connection }) => {
-    // Do nothing if no connection (i.e. REST api)
-    if (!connection) return
-
-    const channel = `auth/${connection.payload.userId}`
-    app.channel(channel).join(connection)
-  })
-  app.on('logout', async (payload) => {
-    const user_payload = await app.passport.verifyJWT(payload, { secret: app.get('authentication').secret, jwt: { ignoreExpiration: true } })
-    const channel = `auth/${connection.payload.userId}`
-
-    app.channel(channel).leave((connection) => {
-      let a = 0
-    })
-  })
   app.service('authentication').publish('user-token-expired', (data) => {
     const channel = `auth/${data.user.userId}`
     return app.channel(channel)
@@ -94,7 +87,7 @@ module.exports = function (app) {
       ],
       remove: [
         /**
-         * After remove hook : Emits "logout" event with user object that logs out 
+         * After remove hook 
          */
         hooks.after_remove
       ]

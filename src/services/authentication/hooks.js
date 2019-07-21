@@ -1,4 +1,6 @@
 const errors = require('@feathersjs/errors')
+const ms = require('ms');
+
 const debug_after_create = require('debug')('auth:hook:after:create');
 const debug_after_remove = require('debug')('auth:hook:after:remove');
 const debug_timeout = require('debug')('auth:hook:jwt:timeout');
@@ -18,7 +20,7 @@ async function after_remove(hook) {
 
     // Clear token timeout
     clearTimeout(removed)
-    
+
 
     // Decode JWT to get User ID
     try {
@@ -29,17 +31,23 @@ async function after_remove(hook) {
     }
     // Store this removed token in service "removed tokens"
     hook.service.removedTokens[hook.result.accessToken] = false
-
-    // Emit logout event
-    //
-    // IMPORTANT: Use a specific event name 'logout user' because of event named 'logout' is already emmitted by "@feathers/authenticate".
-    // and we don't want our app to listen at this default event that DO NOT contains user payload infos
     debug_after_remove('Token removed', [payload])
 
-    // Ensure that reason of the remove method call is "token expired" : We do not want to emit logout-user in case of "logout" called explicitely by a client
+    // If remove reason is "token expired", emit event to notify client app that session expired (token ttl reached)
     if (remove_reason == 'token expired') {
-        // Emit event
+        // Emit token expired
         hook.service.emit('user-token-expired', { user: payload, token: hook.result })
+    }
+
+
+    // Leave user channel
+    // IMPORTANT: we don't do this in "logout" event because we want to be sure that event 'user-token-expired' is sent before leaving channel
+    const channel = `auth/${payload.userId}`
+    const connections = hook.app.channel(channel)
+    if (connections) {
+        for (connection in connections) {
+            hook.app.channel(channel).leave(connection)
+        }
     }
 }
 
@@ -59,9 +67,13 @@ async function after_create(hook) {
     const payload = await app.passport.verifyJWT(hook.result.accessToken, { "secret": secret })
 
     // Compute token expiration time in ms for settimeout
-    const date = new Date()
-    const time = date.getTime()
-    const expire = (payload.exp * 1000 - time)
+    // const date = new Date()
+    // const time = date.getTime()
+    // const expire = (payload.exp * 1000 - time)
+    const settings = hook.app.settings.auth.jwt.expiresIn
+    const settings_ms = ms(settings) 
+    const expiration = settings_ms >= 30000 ? settings_ms - 20000 : settings_ms
+    let timeout_delay = ms(settings) - 20000 // sets timeout to expiration MINUS 20s to ensure we reach timeout BEFORE authentication module
 
     /**
      * set token expiration timeout and call auth service logout when timeout reached
@@ -71,12 +83,9 @@ async function after_create(hook) {
         // Logout user
         // IMPORTANT: Add "reason" param to identify the "remove" method was called when token expired --> Usefull in the "after remove" hook (see function above)
         await hook.app.service('authentication').remove(token, { jwt: { ignoreExpiration: true }, reason: 'token expired' })
-    }, expire, payload, hook.result.accessToken)
+    }, expiration, payload, hook.result.accessToken)
 
-    // Emit event
     debug_after_create('Token Timeout sets', { user: payload, token: hook.result.accessToken })
-    // app.emit('login-user', { user: payload, token: hook.result.accessToken })
-    hook.service.emit('login-user', { user: payload, token: hook.result.accessToken }, { connection: app.io })
 }
 
 module.exports = {

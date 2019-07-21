@@ -81,19 +81,31 @@ app.configure(services);
 app.configure(middleware);
 app.hooks(appHooks);
 
+
+/**
+ * Application channels management (join/leave)
+ */
+
+// Add all new connection to anonymous channel
 app.on('connection', (connection) => {
     app.channel('anonymous').join(connection)
 })
+
+// Unique channel for logged in users
+app.on('login', (payload, { connection }) => {
+    // Do nothing if no connection (i.e. REST api)
+    if (!connection) return
+
+    const channel = `auth/${connection.payload.userId}` // Create a channel only for logged in user
+    app.channel(channel).join(connection)
+})
+
+
+/** 
+ * Application Publishers
+ */
 app.publish('MyEvent', data => {
     return app.channel('anonymous')
 })
-
-app.publish('logout', (params) => {
-    let a = 0
-})
-app.publish('logout-user', (params) => {
-    let a = 0
-})
-
 
 module.exports = app;
