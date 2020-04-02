@@ -1,7 +1,7 @@
 {
-  "id": "site-spaces",
-  "title": "Hierarchical site spaces with role access",
-  "description": "Define hierarchical 'section' of a site and add define for each the permitted roles",
+  "id": "site-zones",
+  "title": "Site zones with role control access",
+  "description": "Define 'zones' of a site and add define for each the permitted roles",
   "isInternalService": false,
   "fields": {},
   "actions": {

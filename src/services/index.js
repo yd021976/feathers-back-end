@@ -14,7 +14,7 @@ const test = require('./test/test.service.js');
 
 const resourcesLocks = require('./resources_locks/resources_locks.service.js');
 
-const siteSpaces = require('./site-spaces/site.spaces.service.js');
+const siteZones = require('./site-zones/site.zones.service.js');
 
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
@@ -29,5 +29,5 @@ module.exports = function () {
   app.configure(serviceModel);
   app.configure(test);
   app.configure(resourcesLocks);
-  app.configure(siteSpaces);
+  app.configure(siteZones);
 };
