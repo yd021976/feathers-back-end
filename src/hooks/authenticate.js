@@ -1,5 +1,5 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
-const { NotAuthenticated } = require('feathers-errors');
+const { NotAuthenticated } = require('@feathersjs/errors');
 const verifyIdentity = authenticate('jwt');
 
 function hasToken(hook) {
