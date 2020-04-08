@@ -19,7 +19,7 @@ const appHooks = require('./app.hooks');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const auth = require('@feathersjs/authentication');
 const ck = require('cookie');
-const app = express(express(feathers()));
+const app = express(express(express(express(express(feathers())))));
 var debug = require('debug')('uploads:extract cookie');
 
 // Load app configuration
