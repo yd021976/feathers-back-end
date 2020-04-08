@@ -1,6 +1,7 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const commonHooks = require('feathers-hooks-common');
-const { restrictToOwner } = require('feathers-authentication-hooks');
+// const { restrictToOwner } = require('feathers-authentication-hooks');
+const { setField } = require('feathers-authentication-hooks');
 const { hashPassword } = require('@feathersjs/authentication-local').hooks;
 const user_hooks = require('./users.utils');
 
@@ -18,11 +19,17 @@ const restrict = [
   authenticate('jwt'),
   commonHooks.iff(
     !user_hooks.isAdmin(),
+
     // Not an admin, auth user must be the owner
-    restrictToOwner({
-      idField: '_id',
-      ownerField: '_id'
-    })
+
+    /** deprecated : upgrade feathersjs from v3 to v4 */
+    // restrictToOwner({
+    //   idField: '_id',
+    //   ownerField: '_id'
+    // })
+
+    /** upgraded feathersjs v4 code */
+    setField({ from: 'params.user._id', as: 'params.query._id' })
   )
 ];
 
@@ -37,9 +44,9 @@ module.exports = {
       // Not an admin, throw error
       () => { throw new Error('You must be \'admin\' to create new user') }
     )
-      , hashPassword()],
-    update: [...restrict, hashPassword()],
-    patch: [...restrict, hashPassword()],
+      , hashPassword('password')],
+    update: [...restrict, hashPassword('password')],
+    patch: [...restrict, hashPassword('password')],
     remove: [commonHooks.iff(user_hooks.isLoggedInUser(), () => { throw new Error('Removing user that is currently loggedin is forbidden') }), ...restrict]
   },
 

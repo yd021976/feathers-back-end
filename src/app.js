@@ -19,7 +19,7 @@ const appHooks = require('./app.hooks');
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const auth = require('@feathersjs/authentication');
 const ck = require('cookie');
-const app = express(express(express(express(express(feathers())))));
+const app = express(feathers());
 var debug = require('debug')('uploads:extract cookie');
 
 // Load app configuration
@@ -96,7 +96,7 @@ app.on('login', (payload, { connection }) => {
     // Do nothing if no connection (i.e. REST api)
     if (!connection) return
 
-    const channel = `auth/${connection.payload.userId}` // Create a channel only for logged in user
+    const channel = `auth/${connection.user._id}` // Create a channel only for logged in user
     app.channel(channel).join(connection)
 })
 
