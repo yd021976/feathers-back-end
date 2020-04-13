@@ -1,26 +1,19 @@
 // A hook that logs service method before, after and error
 const logger = require('winston');
-
+const util = require('util');
 
 module.exports = function () {
-  return function (hook) {
-    logger.level = hook.app.get('winston_log_level')
-    let message = `${hook.type}: ${hook.path} - Method: ${hook.method}`;
+  return context => {
+    // This debugs the service call and a stringified version of the hook context
+    // You can customize the message (and logger) to your needs
+    logger.debug(`${context.type} app.service('${context.path}').${context.method}()`);
 
-    if (hook.type === 'error') {
-      message += `: ${hook.error.message}`;
+    if (typeof context.toJSON === 'function' && logger.level === 'debug') {
+      logger.debug('Hook Context', util.inspect(context, { colors: false }));
     }
 
-    logger.info(message);
-    logger.debug('hook.data', hook.data);
-    logger.debug('hook.params', hook.params);
-
-    if (hook.result) {
-      logger.debug('hook.result', hook.result);
+    if (context.error && !context.result) {
+      logger.error(context.error.stack);
     }
-
-    if (hook.error) {
-      logger.error(hook.error);
-    }
-  };
+  }
 };

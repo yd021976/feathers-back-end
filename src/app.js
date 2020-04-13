@@ -20,6 +20,7 @@ const { authenticate } = require('@feathersjs/authentication').hooks;
 const auth = require('@feathersjs/authentication');
 const ck = require('cookie');
 const app = express(feathers());
+const {tigrouAuthenticationService}=require('./services/authentication/authentication.extended');
 var debug = require('debug')('uploads:extract cookie');
 
 // Load app configuration
@@ -92,20 +93,20 @@ app.on('connection', (connection) => {
 })
 
 // Unique channel for logged in users
-app.on('login', (payload, { connection }) => {
+app.on('login', (payload, params, context) => {
     // Do nothing if no connection (i.e. REST api)
-    if (!connection) return
+    if (!params.connection) return
 
-    const channel = `auth/${connection.user._id}` // Create a channel only for logged in user
-    app.channel(channel).join(connection)
+    const channel = `${tigrouAuthenticationService.channel_prefix}/${params.connection.user._id}` // Create a channel only for logged in user
+    app.channel(channel).join(params.connection)
 })
 
 
 /** 
  * Application Publishers
  */
-app.publish('MyEvent', data => {
-    return app.channel('anonymous')
-})
+// app.publish('MyEvent', data => {
+//     return app.channel('anonymous')
+// })
 
 module.exports = app;

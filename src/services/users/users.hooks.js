@@ -5,10 +5,6 @@ const { setField } = require('feathers-authentication-hooks');
 const { hashPassword } = require('@feathersjs/authentication-local').hooks;
 const user_hooks = require('./users.utils');
 
-
-
-
-
 /**
  * Restrictions applied in order :
  * 1 - Auth users

@@ -3,9 +3,7 @@ const manageTemplateImg = require('./hooks.js').manageUploadsTemplates;
 
 module.exports = {
   before: {
-    all: [authenticate('jwt'), function (hook) { 
-      console.log('Hook [ALL] called for service ' + hook.path);
-    }],
+    all: [authenticate('jwt')],
     find: [],
     get: [],
     create: [],
