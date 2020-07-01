@@ -4,46 +4,35 @@ const commonHooks = require('feathers-hooks-common');
 const { setField } = require('feathers-authentication-hooks');
 const { hashPassword } = require('@feathersjs/authentication-local').hooks;
 const user_hooks = require('./users.utils');
+const { isAdmin, isAdmin2 } = require('./users.utils');
 
 /**
- * Restrictions applied in order :
- * 1 - Auth users
- * 2 - check user has role 'admins' => can get/find/update/remove/create any users
- * 3 - check auth user is the owner =>  can get/find/update/remove its own user object
+ * Filter results for users :
+ * not admins : Can only access to their own data (user _id)
+ * admins : can access all data (all users)
  */
-const restrict = [
+const restrictToUsers = [
   authenticate('jwt'),
-  commonHooks.iff(
-    !user_hooks.isAdmin(),
-
-    // Not an admin, auth user must be the owner
-
-    /** deprecated : upgrade feathersjs from v3 to v4 */
-    // restrictToOwner({
-    //   idField: '_id',
-    //   ownerField: '_id'
-    // })
-
-    /** upgraded feathersjs v4 code */
-    setField({ from: 'params.user._id', as: 'params.query._id' })
-  )
+  commonHooks.iff(commonHooks.isNot(isAdmin()), setField({ from: 'params.user._id', as: 'params.query._id' })), /** non admin users can only access to their user object */
+  hashPassword('password')
 ];
+
+/** Authorize only admin roles to method */
+const restrictToAdminsOnly = [
+  authenticate('jwt'),
+  commonHooks.iff(commonHooks.isNot(isAdmin()), () => { throw new Error('Acess restricted to admins') }),
+  hashPassword('password')
+]
 
 module.exports = {
   before: {
-    all: [],
-    find: [authenticate('jwt')],
-    get: [...restrict],
-    // Only auth users having role 'admins' can create users
-    create: [authenticate('jwt'), commonHooks.iff(
-      !user_hooks.isAdmin(),
-      // Not an admin, throw error
-      () => { throw new Error('You must be \'admin\' to create new user') }
-    )
-      , hashPassword('password')],
-    update: [...restrict, hashPassword('password')],
-    patch: [...restrict, hashPassword('password')],
-    remove: [commonHooks.iff(user_hooks.isLoggedInUser(), () => { throw new Error('Removing user that is currently loggedin is forbidden') }), ...restrict]
+    all: [authenticate('jwt')],
+    find: [...restrictToUsers],
+    get: [...restrictToUsers],
+    create: [...restrictToAdminsOnly],
+    update: [...restrictToAdminsOnly],
+    patch: [...restrictToAdminsOnly],
+    remove: [commonHooks.iff(user_hooks.isLoggedInUser(), () => { throw new Error('Removing user that is currently loggedin is forbidden') }), ...restrictToUsers]
   },
 
   after: {
@@ -55,7 +44,7 @@ module.exports = {
     ],
     find: [
       // Sort users by _id ASC
-      user_hooks.sortByIdAsc()
+      user_hooks.sortByNameAsc()
     ],
     get: [
       // user_hooks.userRole()

@@ -3,7 +3,7 @@
   "title": "Get application services schema definition",
   "description": "Service to retrieve the application services schema.",
   "isInternalService": false,
-  "fields": {},
+  "fields_definition": [],
   "actions": {
     "read": {
       "checkFieldAccess": false

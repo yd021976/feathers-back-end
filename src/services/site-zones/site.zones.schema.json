@@ -3,7 +3,7 @@
   "title": "Site zones with role control access",
   "description": "Define 'zones' of a site and add define for each the permitted roles",
   "isInternalService": false,
-  "fields": {},
+  "fields_definition": [],
   "actions": {
     "read": {
       "checkFieldAccess": false

@@ -39,6 +39,9 @@ class tigrouAuthenticationService extends AuthenticationService {
                 }
                 return result
             })
+            .catch((err) => {
+                throw err
+            })
     }
 
     /**
@@ -51,16 +54,21 @@ class tigrouAuthenticationService extends AuthenticationService {
         return super.remove(id, params)
             .then((result) => {
                 this._handleTokenExpiration(result, params)
+                return result
+            })
+            .catch((err) => {
+                throw err
             })
     }
 
     setup(path, app) {
+        // call original service setup method
+        super.setup(path, app)
+
         // Check token expiration duration is > 1 minute
         const expiration = ms(this.configuration.jwtOptions.expiresIn)
         if (ms < 60000) throw new Error('JWT expriation must be higher than 60 secondes')
 
-        // call original service setup method
-        super.setup(path, app)
 
         /** Configure service publisher */
         this.publish(tigrouAuthenticationService.token_expired_event, (event_data) => {

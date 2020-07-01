@@ -36,12 +36,12 @@
       "audience": "localhost",
       "issuer": "feathers",
       "algorithm": "HS256",
-      "expiresIn": "2m"
+      "expiresIn": "1h"
     },
     "local": {
       "entity": "user",
       "service": "users",
-      "usernameField": "email",
+      "usernameField": "name",
       "passwordField": "password",
       "idField": "_id"
     },

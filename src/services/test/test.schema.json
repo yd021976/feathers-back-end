@@ -3,18 +3,22 @@
   "title": "Test service schema",
   "description": "Service used only for testing purposes",
   "isInternalService": false,
-  "fields_definition": {
-    "id": {
-      "id": "id",
-      "name": "id",
-      "type": "string"
+  "fields_definition": [
+    {
+      "id": {
+        "id": "id",
+        "name": "id",
+        "type": "string"
+      }
     },
-    "name": {
-      "id": "name",
-      "name": "name",
-      "type": "string"
+    {
+      "name": {
+        "id": "name",
+        "name": "name",
+        "type": "string"
+      }
     }
-  },
+  ],
   "actions": {
     "read": {
       "checkFieldAccess": true

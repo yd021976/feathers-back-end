@@ -276,7 +276,7 @@ class UserLocks extends EventEmitter {
 
                     // Assume that if code is request_timeout, the lock is already locked by someone
                     if (err['code'] == 'request_timeout') {
-                        err.message = 'Resource already locked by someone'
+                        err.message = `Can not lock ${resource_id} : Resource already locked by another user`
                     }
                     /**
                      * Handle error in promise chain
