@@ -1,39 +1,24 @@
 const { authenticate } = require('@feathersjs/authentication').hooks
-const acl_hooks = require('./roles.hooks.utils')
+const roleHooks = require('./roles.hooks.utils')
 const authorize = require('../../hooks/abilities-service-level')
+const checkLock = require('../../hooks/ensureResourceLock')
 
 module.exports = {
     before: {
         all: [authenticate('jwt')],
         find: [],
         get: [],
-        create: [
-            /**
-             * TODO: Control user has a lock before update/patch/delete/create
-             */
-        ],
-        update: [
-            /**
-             * TODO: Control user has a lock before update/patch/delete/create
-             */
-            acl_hooks.checkUserHasLock,
-        ],
-        patch: [
-            /**
-             * TODO: Control user has a lock before update/patch/delete/create
-             */
-        ],
-        remove: [
-            /**
-             * TODO: Control user has a lock before update/patch/delete/create
-             */
-
-            acl_hooks.ensureRoleIsUnused /** check removed role is not assigned to a user */,
-        ],
+        create: [checkLock('permissions')],
+        update: [checkLock('permissions')],
+        patch: [checkLock('permissions')],
+        remove: [checkLock('permissions'), roleHooks.ensureRoleIsUnused /** check removed role is not assigned to a user */],
     },
 
     after: {
-        all: [],
+        all: [
+            /** ensure operation filters are populated in results (i.e. If a filter is added after role is saved in db) */
+            roleHooks.populateServiceOperationOptions,
+        ],
         find: [],
         get: [],
         create: [],

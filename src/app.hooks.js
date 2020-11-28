@@ -1,9 +1,13 @@
 // Application hooks that run for every service
 const logger = require('./hooks/logger')
-const authorize = require('./hooks/abilities-service-level')
-const fieldPermission = require('./hooks/abilities-model-level')
 const { when } = require('feathers-hooks-common')
 const { authenticate } = require('@feathersjs/authentication').hooks
+
+/** custom app hooks */
+const authorize = require('./hooks/abilities-service-level')
+const fieldPermission = require('./hooks/abilities-model-level')
+const loadUserRoles = require('./hooks/load-user-roles')
+const applyFilters = require('./hooks/apply-roles-service-filter')
 
 module.exports = {
     before: {
@@ -18,20 +22,25 @@ module.exports = {
                 /** authenticate user */
                 [authenticate('jwt')]
             ),
-
-            /** do authorization checks only when user is authenticated : Don't check if hook auth is TRUE and do not alreeady contains "user" data */
+            /** load user roles */
             when(
                 (hook) => {
-                    const authPath = 'authentication' /** authentication service path */
-                    const usersPath = 'users' /** users service path */
-                    const user = hook.app.get('authentication')
-                    if ((hook.params.authenticated === true && hook.path === usersPath && !hook.params.user) || hook.path === authPath || hook.params.provider==='abilities') {
-                        return false
-                    } else {
-                        return true
-                    }
+                    return hook.params.provider && hook.path !== 'authentication'
                 },
-                [authenticate('jwt'), authorize()]
+                [loadUserRoles]
+            ),
+            /** do authorization checks only when user is authenticated */
+            when(
+                (hook) => {
+                    return hook.path !== 'authentication' && hook.params.provider
+                },
+                [authorize]
+            ),
+            when(
+                (hook) => {
+                    return hook.params.provider && hook.path !== 'authentication'
+                },
+                [applyFilters]
             ),
         ],
         find: [],
@@ -43,7 +52,16 @@ module.exports = {
     },
 
     after: {
-        all: [logger()],
+        all: [
+            logger(),
+            /** apply result filters based on user roles & service restriction options */
+            when(
+                (hook) => {
+                    return hook.path !== 'authentication' && hook.params.provider
+                },
+                [applyFilters]
+            ),
+        ],
         find: [],
         get: [
             //fieldPermission.authorize_read()

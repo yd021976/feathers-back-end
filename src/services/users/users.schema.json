@@ -1,0 +1,53 @@
+{
+    "id": "users",
+    "title": "Users",
+    "description": "Users management",
+    "isInternalService": false,
+    "fields_definition": [
+        {
+            "id": "_id",
+            "name": "_id",
+            "type": "string"
+        },
+        {
+            "id": "email",
+            "name": "email",
+            "type": "string"
+        }
+    ],
+    "filters": ["ownerOnly"],
+    "actions": {
+        "find": {
+            "checkFieldAccess": true,
+            "restrictionOptions": [
+                {
+                    "filterName": "ownerOnly",
+                    "name": "Restrict access to data owns by user",
+                    "description": "User can only get its own user data"
+                }
+            ]
+        },
+        "get": {
+            "checkFieldAccess": true,
+            "restrictionOptions": [
+                {
+                    "filterName": "ownerOnly",
+                    "name": "Restrict access to data owns by user",
+                    "description": "User can only get its own user data"
+                }
+            ]
+        },
+        "create": {
+            "checkFieldAccess": false
+        },
+        "delete": {
+            "checkFieldAccess": false
+        },
+        "update": {
+            "checkFieldAccess": true
+        },
+        "patch": {
+            "checkFieldAccess": true
+        }
+    }
+}

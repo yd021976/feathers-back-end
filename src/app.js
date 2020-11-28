@@ -1,40 +1,41 @@
-const path = require('path');
-const favicon = require('serve-favicon');
-const compress = require('compression');
-const cors = require('cors');
-const helmet = require('helmet');
-const bodyParser = require('body-parser');
+const path = require('path')
+const favicon = require('serve-favicon')
+const compress = require('compression')
+const cors = require('cors')
+const helmet = require('helmet')
+const bodyParser = require('body-parser')
 
-const feathers = require('@feathersjs/feathers');
-const express = require('@feathersjs/express');
-const configuration = require('@feathersjs/configuration');
+const feathers = require('@feathersjs/feathers')
+const express = require('@feathersjs/express')
+const configuration = require('@feathersjs/configuration')
 
-const socketio = require('@feathersjs/socketio');
-const rest = require('@feathersjs/express/rest');
+const socketio = require('@feathersjs/socketio')
+const rest = require('@feathersjs/express/rest')
 
-const middleware = require('./middleware');
-const services = require('./services');
-const appHooks = require('./app.hooks');
+const middleware = require('./middleware')
+const services = require('./services')
+const appHooks = require('./app.hooks')
 
-const { authenticate } = require('@feathersjs/authentication').hooks;
-const auth = require('@feathersjs/authentication');
-const ck = require('cookie');
-const app = express(feathers());
-const {tigrouAuthenticationService}=require('./services/authentication/authentication.extended');
-var debug = require('debug')('uploads:extract cookie');
+const { authenticate } = require('@feathersjs/authentication').hooks
+const auth = require('@feathersjs/authentication')
+const ck = require('cookie')
+const app = express(feathers())
+const { tigrouAuthenticationService } = require('./services/authentication/authentication.extended')
+var debug = require('debug')('uploads:extract cookie')
+const winston = require('winston')
 
 // Load app configuration
-app.configure(configuration(path.join(__dirname, '..')));
+app.configure(configuration(path.join(__dirname, '..')))
 // Enable CORS, security, compression, favicon and body parsing
-app.use(cors());
-app.use(helmet());
-app.use(compress());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
+app.use(cors())
+app.use(helmet())
+app.use(compress())
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(favicon(path.join(app.get('public'), 'favicon.ico')))
 
-app.configure(socketio());
-app.configure(rest());
+app.configure(socketio())
+app.configure(rest())
 
 // Host the public and upload folder
 // app.use('/', express.static(app.get('public')));
@@ -77,11 +78,10 @@ app.configure(rest());
 // });
 
 // Set up our services (see `services/index.js`)
-app.configure(services);
+app.configure(services)
 // Configure middleware (see `middleware/index.js`) - always has to be last
-app.configure(middleware);
-app.hooks(appHooks);
-
+app.configure(middleware)
+app.hooks(appHooks)
 
 /**
  * Application channels management (join/leave)
@@ -101,12 +101,31 @@ app.on('login', (payload, params, context) => {
     app.channel(channel).join(params.connection)
 })
 
-
-/** 
+/**
  * Application Publishers
  */
 // app.publish('MyEvent', data => {
 //     return app.channel('anonymous')
 // })
+app.logger = (hook) => {
+    hook = hook
+    doMessage = (message) => {
+        return `${hook.path}/${hook.type}/${hook.method}/${message}`
+    }
+    return {
+        debug: (message) => {
+            return winston.debug(doMessage(message))
+        },
+        warn: (message) => {
+            return winston.warn(doMessage(message))
+        },
+        error: (message) => {
+            return winston.error(doMessage(message))
+        },
+        info: (message) => {
+            return winston.info(doMessage(message))
+        },
 
-module.exports = app;
+    }
+}
+module.exports = app

@@ -118,7 +118,7 @@ class Service {
      * @param {any} params
      */
     get(resource_id_to_lock, params) {
-        const resource_ttl = params.query['ttl'] || null
+        const resource_ttl = params.query ? (params.query['ttl'] ? params.query['ttl'] : null) : null
         let response = {}
         /**
          * If user is auth, retrieve or create store of resources locks
