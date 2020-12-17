@@ -50,7 +50,7 @@
     "feathers-nedb": "^5.1.0",
     "flatnest": "^1.0.0",
     "fs-blob-store": "^5.2.1",
-    "googleapis": "^20.2.0",
+    "googleapis": "^39.1.0",
     "helmet": "^3.23.3",
     "live-mutex": "^0.1.1066",
     "lodash": "^4.17.20",
