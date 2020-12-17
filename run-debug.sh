@@ -1,1 +1,1 @@
-nodemon --inspect src/index.js
+./nodemon --inspect src/index.js

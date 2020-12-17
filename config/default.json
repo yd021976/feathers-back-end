@@ -41,7 +41,7 @@
     "local": {
       "entity": "user",
       "service": "users",
-      "usernameField": "name",
+      "usernameField": "email",
       "passwordField": "password",
       "idField": "_id"
     },
