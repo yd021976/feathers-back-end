@@ -103,5 +103,6 @@
         ]
       }
     ]
-  }
+  },
+  "mongodb": "mongodb://feathers:feathers@Mongo:27017/feathers"
 }

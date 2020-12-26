@@ -79,7 +79,7 @@ class Service {
                 const all_users = await this.app.service('users').find()
                 all_users.data.forEach((user) => {
                     // Do not add current authenticated user in the list as it will be added before requesting locks
-                    if (user._id != params.user._id) {
+                    if (user._id.toString() != params.user._id.toString()) {
                         users.push(user)
                     }
                 })
@@ -92,7 +92,7 @@ class Service {
         users.push(params.user)
 
         users.forEach((user) => {
-            promises.push(this.locks.getLockList(user._id))
+            promises.push(this.locks.getLockList(user._id.toString()))
         })
 
         let result = {}
@@ -124,27 +124,31 @@ class Service {
          * If user is auth, retrieve or create store of resources locks
          */
         if (params.user) {
-            this.locks.registerUser(params.user._id) // ensure user is registered, will do nothing if user already registered
+            this.locks.registerUser(params.user._id.toString()) // ensure user is registered, will do nothing if user already registered
         } else {
             throw new errors.NotAuthenticated('Resource lock are only available with authenticated users')
         }
+
+        // Sets user ID
+        const userId = params.user._id.toString()
+
         /**
          *
          */
         return this.locks
-            .lock(params.user._id, resource_id_to_lock, resource_ttl)
+            .lock(userId, resource_id_to_lock, resource_ttl)
             .then((lockInfos) => {
                 response[resource_id_to_lock] = this._buildResponse(
                     lockInfos.unlock.key,
                     lockInfos.unlock.id,
                     lockInfos.state,
-                    params.user._id,
+                    userId,
                     'Lock successfull'
                 )
                 return response
             })
             .catch((err) => {
-                response[resource_id_to_lock] = this._buildResponse(resource_id_to_lock, resource_id_to_lock, null, params.user._id, err.message)
+                response[resource_id_to_lock] = this._buildResponse(resource_id_to_lock, resource_id_to_lock, null, userId, err.message)
                 throw new errors.FeathersError(err.message, 'resources-locks-error', errors[500], err.name, response)
             })
     }
@@ -159,20 +163,23 @@ class Service {
         let response = {}
 
         if (!params.user) throw new errors.Unprocessable('User must be authenticated and should be set in method params')
+
+        // Sets user ID
+        const userId = params.user._id.toString()
         return this.locks
-            .unlock(params.user._id, resourceId_to_unlock)
+            .unlock(userId, resourceId_to_unlock)
             .then((unlocked) => {
                 response[resourceId_to_unlock] = this._buildResponse(
                     unlocked.unlock.key,
                     unlocked.unlock.id,
                     unlocked.state,
-                    params.user._id,
+                    userId,
                     'Unlock successfull'
                 )
                 return response
             })
             .catch((err) => {
-                response[resourceId_to_unlock] = this._buildResponse(resourceId_to_unlock, null, false, params.user._id, err.message)
+                response[resourceId_to_unlock] = this._buildResponse(resourceId_to_unlock, null, false, userId, err.message)
                 return response
             })
     }

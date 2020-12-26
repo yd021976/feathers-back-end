@@ -2,6 +2,8 @@ const { AuthenticationService } = require('@feathersjs/authentication');
 const ms = require('ms');
 const debug = require('debug')('authentication:tigrou');
 const errors = require('@feathersjs/errors');
+
+
 /**
  * Customized authenticate service to handle token expiration and to send event when token expiration occurs 
  */

@@ -19,6 +19,7 @@ const appHooks = require('./app.hooks')
 const { authenticate } = require('@feathersjs/authentication').hooks
 const auth = require('@feathersjs/authentication')
 const ck = require('cookie')
+const mongodb = require('./mongodb');
 const app = express(feathers())
 const { tigrouAuthenticationService } = require('./services/authentication/authentication.extended')
 var debug = require('debug')('uploads:extract cookie')
@@ -78,10 +79,11 @@ app.configure(rest())
 // });
 
 // Set up our services (see `services/index.js`)
-app.configure(services)
+app.configure(mongodb);
+app.configure(services);
 // Configure middleware (see `middleware/index.js`) - always has to be last
-app.configure(middleware)
-app.hooks(appHooks)
+app.configure(middleware);
+app.hooks(appHooks);
 
 /**
  * Application channels management (join/leave)
@@ -128,4 +130,4 @@ app.logger = (hook) => {
 
     }
 }
-module.exports = app
+module.exports = app;

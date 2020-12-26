@@ -23,7 +23,7 @@ class Service {
       // Init google api
       var key = require('./tigrou-project-40dd3c8bf23c.json');
 
-      var jwtClient = new googleapis.auth.JWT(
+      var jwtClient = new googleapis.Auth.JWT(
         key.client_email,
         null,
         key.private_key, [
@@ -46,7 +46,7 @@ class Service {
           _this.jwtClient = jwtClient;
 
           // Construct google drive object
-          var drive = googleapis.drive({ version: 'v3', auth: _this.jwtClient });
+          var drive = new googleapis.drive_v3.Drive({ version: 'v3', auth: _this.jwtClient });
           _this.googleDrive = drive;
         }
       });
